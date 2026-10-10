@@ -88,7 +88,20 @@ canvas{display:block;width:100%;height:100%;image-rendering:pixelated;image-rend
 .steps{margin:0;padding-left:calc(var(--u)*6);font-size:calc(var(--u)*3.8);line-height:1.9;display:grid;gap:calc(var(--u)*1.5)}
 .view .row{justify-content:stretch}
 .view .row .sm{flex:1 1 calc(var(--u)*50);text-align:center}
-@media (prefers-reduced-motion:reduce){.pxbtn:active{filter:none}}
+#mus{right:calc(var(--u)*61)}
+#mus.off{filter:grayscale(.8) brightness(.8)}
+.combo{position:absolute;left:0;right:0;top:calc(var(--u)*104);text-align:center;pointer-events:none;font-size:calc(var(--u)*11);line-height:1.2;color:var(--gold);
+  text-shadow:calc(var(--u)*1) calc(var(--u)*1) 0 #c4301e,calc(var(--u)*-1) calc(var(--u)*-1) 0 #7a1f10,calc(var(--u)*1) calc(var(--u)*-1) 0 #7a1f10,calc(var(--u)*-1) calc(var(--u)*1) 0 #7a1f10,0 calc(var(--u)*2.4) 0 rgba(0,0,0,.35);
+  opacity:0;transform-origin:50% 50%}
+.combo small{display:block;font-size:calc(var(--u)*6.5);color:#fff;margin-top:calc(var(--u)*3)}
+.combo.pop{animation:comboPop .95s cubic-bezier(.2,1.4,.4,1) forwards}
+@keyframes comboPop{0%{opacity:0;transform:scale(.3) rotate(-8deg)}18%{opacity:1;transform:scale(1.25) rotate(3deg)}32%{transform:scale(.95) rotate(-2deg)}70%{opacity:1;transform:scale(1) rotate(0)}100%{opacity:0;transform:scale(1.15) translateY(calc(var(--u)*-8))}}
+.skin canvas.map{height:calc(var(--u)*53)}
+.cprice::before{content:"";display:inline-block;width:calc(var(--u)*2.6);height:calc(var(--u)*2.6);background:#5ee0ff;transform:rotate(45deg);margin-right:calc(var(--u)*1.6)}
+.crys{color:#8fe8ff}
+.tabs.four .tab{font-size:calc(var(--u)*3.6);padding:calc(var(--u)*2.6) calc(var(--u)*2)}
+.cbtn{font-size:calc(var(--u)*3.5);line-height:1.5;padding:calc(var(--u)*3) calc(var(--u)*2)}
+@media (prefers-reduced-motion:reduce){.pxbtn:active{filter:none}.combo.pop{animation:none;opacity:1}}
 </style>
 
 <div class="stage" id="stage">
@@ -101,8 +114,13 @@ canvas{display:block;width:100%;height:100%;image-rendering:pixelated;image-rend
     <div>Мандарины: <span id="wl">0</span></div>
   </div>
 
+  <div class="combo" id="combo" aria-hidden="true"></div>
+
   <button class="pxbtn ibtn" id="snd" aria-label="Звук">
     <svg viewBox="0 0 12 12" shape-rendering="crispEdges"><polygon points="1,4.5 3.5,4.5 6.5,2 6.5,10 3.5,7.5 1,7.5" fill="#fff" stroke="#7a3208" stroke-width=".8"/><path d="M8.2 4.2 Q9.6 6 8.2 7.8 M9.6 2.8 Q12 6 9.6 9.2" fill="none" stroke="#fff" stroke-width="1" id="waves"/></svg>
+  </button>
+  <button class="pxbtn ibtn" id="mus" aria-label="Музыка">
+    <svg viewBox="0 0 12 12" shape-rendering="crispEdges"><path d="M4.2 9 V2.4 L10.2 1.4 V8" fill="none" stroke="#fff" stroke-width="1.3"/><ellipse cx="3" cy="9" rx="2.1" ry="1.6" fill="#fff" stroke="#7a3208" stroke-width=".6"/><ellipse cx="9" cy="8" rx="2.1" ry="1.6" fill="#fff" stroke="#7a3208" stroke-width=".6"/></svg>
   </button>
   <button class="pxbtn ibtn" id="shop" aria-label="Магазин скинов">
     <svg viewBox="0 0 12 12" shape-rendering="crispEdges"><path d="M4 4.5 V3.4 Q4 1.4 6 1.4 Q8 1.4 8 3.4 V4.5" fill="none" stroke="#fff" stroke-width="1"/><rect x="2" y="4.5" width="8" height="6.5" fill="#fff" stroke="#7a3208" stroke-width=".8"/></svg>
@@ -124,7 +142,8 @@ canvas{display:block;width:100%;height:100%;image-rendering:pixelated;image-rend
       <p id="pp">Лови мандарины оленем. Двигай пальцем или стрелками ← →</p>
       <button class="pxbtn go" id="go">Играть</button>
       <div class="row">
-        <button class="pxbtn sm" id="o-shop">Магазин</button>
+        <button class="pxbtn sm" id="o-shop">Скины</button>
+        <button class="pxbtn sm" id="o-maps">Карты</button>
         <button class="pxbtn sm alt" id="o-share">Поделиться</button>
       </div>
     </div>
@@ -133,14 +152,31 @@ canvas{display:block;width:100%;height:100%;image-rendering:pixelated;image-rend
   <div class="panel menu" id="menu" hidden>
     <div class="sheet">
       <div class="tabs" role="tablist">
-        <button class="tab on" id="tab-shop" role="tab">Магазин</button>
+        <button class="tab on" id="tab-shop" role="tab">Скины</button>
+        <button class="tab" id="tab-maps" role="tab">Карты</button>
         <button class="tab" id="tab-share" role="tab">Поделиться</button>
+        <button class="tab" id="tab-cheat" role="tab" hidden>Читы</button>
         <button class="pxbtn xbtn" id="menu-x" aria-label="Закрыть"><svg viewBox="0 0 12 12" shape-rendering="crispEdges"><path d="M2 2 L10 10 M10 2 L2 10" stroke="#fff" stroke-width="2.2" fill="none"/></svg></button>
       </div>
       <div class="view" id="view-shop">
         <div class="wallet">Мандарины: <span id="wl2">0</span></div>
         <div class="msg" id="shop-msg">Собирай мандарины и покупай одежду для оленя.</div>
         <div class="grid" id="grid"></div>
+      </div>
+      <div class="view" id="view-maps" hidden>
+        <div class="wallet">Мандарины: <span id="wl3">0</span></div>
+        <div class="wallet crys">Кристаллы: <span id="cr">0</span></div>
+        <div class="row">
+          <button class="pxbtn sm" id="ex1">Обменять 100</button>
+          <button class="pxbtn sm alt" id="exall">Обменять все</button>
+        </div>
+        <div class="msg" id="maps-msg">100 мандаринов = 1 кристалл. Карты стоят 5 и 10 кристаллов.</div>
+        <div class="grid" id="mapgrid"></div>
+      </div>
+      <div class="view" id="view-cheat" hidden>
+        <div class="wallet crys">Секретное меню</div>
+        <div class="msg" id="cheat-msg">Игровые читы отключают рекорд на время забега, а в результате для Telegram ставится пометка.</div>
+        <div class="grid" id="cheatgrid"></div>
       </div>
       <div class="view" id="view-share" hidden>
         <textarea id="sharetext" readonly aria-label="Текст результата"></textarea>
@@ -179,8 +215,8 @@ fit();requestAnimationFrame(fit);
 /* ---------- pixel scene (drawn once) ---------- */
 function mk(seed){let a=seed;return()=>{a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
 const rnd=mk(11);
-const bg=document.createElement("canvas");bg.width=W;bg.height=H;
-const g=bg.getContext("2d");
+let g;
+function makeScene(fn){const c=document.createElement("canvas");c.width=W;c.height=H;g=c.getContext("2d");fn();return c}
 const rect=(x,y,w,h,c)=>{g.fillStyle=c;g.fillRect(Math.round(x),Math.round(y),w,h)};
 const ell=(cx,cy,rx,ry,c)=>{g.fillStyle=c;for(let y=-ry;y<=ry;y++){const w=Math.floor(rx*Math.sqrt(1-(y*y)/(ry*ry))+.5);g.fillRect(Math.round(cx-w),Math.round(cy+y),w*2+1,1)}};
 const lerp=(a,b,t)=>a+(b-a)*t;
@@ -303,7 +339,175 @@ function buildScene(){
   /* snow caps on right edge shrubs */
   for(let i=0;i<10;i++){const x=rnd()*W,y=292+rnd()*24;ell(x,y,3+rnd()*5,2,"#ffffff")}
 }
-buildScene();
+/* ---------- extra helpers + two more maps ---------- */
+function poly(pts,c){
+  g.fillStyle=c;let y0=1e9,y1=-1e9;pts.forEach(p=>{y0=Math.min(y0,p[1]);y1=Math.max(y1,p[1])});
+  for(let y=Math.floor(y0);y<=Math.ceil(y1);y++){
+    const xs=[];
+    for(let i=0;i<pts.length;i++){const a=pts[i],b=pts[(i+1)%pts.length];if((a[1]<=y&&b[1]>y)||(b[1]<=y&&a[1]>y))xs.push(a[0]+(y-a[1])/(b[1]-a[1])*(b[0]-a[0]))}
+    xs.sort((p,q)=>p-q);
+    for(let k=0;k+1<xs.length;k+=2){const x0=Math.round(xs[k]),x1=Math.round(xs[k+1]);g.fillRect(x0,y,Math.max(1,x1-x0),1)}
+  }
+}
+function pline(x0,y0,x1,y1,c,th){
+  th=th||1;g.fillStyle=c;x0=Math.round(x0);y0=Math.round(y0);x1=Math.round(x1);y1=Math.round(y1);
+  const dx=Math.abs(x1-x0),dy=-Math.abs(y1-y0),sx=x0<x1?1:-1,sy=y0<y1?1:-1;let e=dx+dy;
+  for(;;){g.fillRect(x0,y0,th,th);if(x0===x1&&y0===y1)break;const e2=2*e;if(e2>=dy){e+=dy;x0+=sx}if(e2<=dx){e+=dx;y0+=sy}}
+}
+function skyFill(h,c0,c1){for(let y=0;y<h;y+=2){const t=Math.min(1,y/h);rect(0,y,W,2,`rgb(${lerp(c0[0],c1[0],t)|0},${lerp(c0[1],c1[1],t)|0},${lerp(c0[2],c1[2],t)|0})`)}}
+function starsAt(n,maxY){for(let i=0;i<n;i++)rect(rnd()*W|0,rnd()*maxY|0,1,1,"#d8e0ff")}
+function firework(cx,cy,r,cols){
+  for(let i=0;i<14;i++){const a=i/14*Math.PI*2;for(let k=r*.45;k<=r;k+=1.5)rect(cx+Math.cos(a)*k,cy+Math.sin(a)*k,1,1,cols[(i+Math.floor(k))%cols.length]);rect(cx+Math.cos(a)*(r+2),cy+Math.sin(a)*(r+2),1,1,"#ffffff")}
+  rect(cx-1,cy-1,2,2,"#ffffff");
+}
+function bulbs(x0,y0,x1,y1,sag,step){
+  const cols=["#ff5a5a","#ffd23f","#5ae0ff","#7dff7a","#ff8ae0"];let n=0;
+  for(let x=x0;x<=x1;x+=step){const t=(x-x0)/(x1-x0),y=Math.round(lerp(y0,y1,t)+sag*4*t*(1-t));rect(x,y,1,1,"#141a30");rect(x,y+1,2,2,cols[n++%cols.length])}
+}
+function driftFn(f,body,hi,sh){for(let x=0;x<W;x++){const top=Math.round(f(x));rect(x,top,1,H-top,body);rect(x,top,1,2,hi);if(((x>>2)+(top>>1))%3===0)rect(x,top+3,1,2,sh)}}
+function firTree(cx,top,base,hw){
+  for(let y=top;y<=base;y++){
+    const p=(y-top)/(base-top),L=Math.floor(p*4),lp=p*4-L;
+    const half=Math.round(hw*((L+lp*.9+.4)/4.4));
+    rect(cx-half,y,half*2+1,1,lp<.25?"#e9f1ff":lp<.55?"#2d6f66":"#1b4c4e");
+    if(rnd()<.12)rect(cx-half+Math.floor(rnd()*half*2),y,1,1,"#ffffff");
+  }
+  rect(cx-1,base,3,3,"#3b2a22");
+}
+function xmas(cx,top){
+  [[0,20,8],[14,42,12],[34,66,17]].forEach(([a,b,hw])=>{
+    for(let y=top+a;y<=top+b;y++){const half=Math.round(hw*(y-top-a)/(b-a)+2);rect(cx-half,y,half*2+1,1,(y-top-a)%4<2?"#2f8f3a":"#277a32");rect(cx-half,y,1,1,"#1c5a26");rect(cx+half,y,1,1,"#1c5a26")}
+    for(let dx=-hw;dx<=hw;dx++)rect(cx+dx,Math.round(top+a+(b-a)*.55+Math.sin(dx*.55)*1.6),1,1,"#ffe27a");
+  });
+  rect(cx-2,top+66,5,7,"#5a3a22");
+  const orn=["#e0332e","#2f8ae0","#ffc12a","#e0332e","#2f8ae0","#ff9bd0"];
+  for(let i=0;i<22;i++){const y=top+6+Math.floor(rnd()*58),half=3+(y-top)*.26,x=Math.round(cx+(rnd()*2-1)*half*.85);rect(x,y,3,3,orn[i%orn.length]);rect(x,y,1,1,"#ffffff")}
+  rect(cx-1,top-9,3,10,"#ffd23f");rect(cx-5,top-5,11,3,"#ffd23f");rect(cx-3,top-7,7,7,"#ffe27a");rect(cx-1,top-5,3,3,"#fff6b0");
+  rect(cx-24,top+66,9,8,"#c42a2a");rect(cx-20,top+66,2,8,"#ffd23f");rect(cx+14,top+64,10,10,"#2a8a3a");rect(cx+18,top+64,2,10,"#ffd23f");
+}
+const FONT5={"К":["X...X","X..X.","X.X..","XX...","X.X..","X..X.","X...X"],"О":[".XXX.","X...X","X...X","X...X","X...X","X...X",".XXX."],"Л":["..XXX","..X.X",".X..X",".X..X","X...X","X...X","X...X"],"А":[".XXX.","X...X","X...X","XXXXX","X...X","X...X","X...X"],"Ж":["X.X.X","X.X.X",".XXX.","..X..",".XXX.","X.X.X","X.X.X"],"Б":["XXXXX","X....","XXXX.","X...X","X...X","X...X","XXXX."]};
+function pixText(str,x,y,sc,c,gap){for(const ch of str){const m=FONT5[ch];if(!m)continue;for(let j=0;j<7;j++)for(let i=0;i<5;i++)if(m[j][i]==="X")rect(x+i*sc,y+j*sc,sc,sc,c);x+=(5+gap)*sc}}
+
+/* map 2: shopping centre with a curved green roof line and an orange tower */
+function buildMall(){
+  const dd=x=>Math.abs(x-90)/90;
+  skyFill(150,[8,14,66],[50,72,152]);starsAt(34,92);
+  [[150,128,26,6],[34,120,22,5],[96,108,18,4]].forEach(([x,y,rx,ry])=>{ell(x,y,rx,ry,"#2e4690");ell(x+2,y-1,rx-5,Math.max(1,ry-2),"#3d5bb0")});
+  firework(32,34,14,["#ffd23f","#ff7a5a","#ffffff"]);firework(140,46,11,["#5ae0ff","#a98bff","#ffffff"]);firework(98,20,8,["#ff8ae0","#ffd23f","#ffffff"]);
+  /* wall + roof snow */
+  rect(0,96,122,126,"#5f8c74");rect(0,96,122,30,"#6b9a80");
+  rect(0,93,122,5,"#eaf0ff");rect(0,98,122,1,"#9fb3e8");
+  /* sign board, plain pixel lettering */
+  rect(21,103,78,24,"#d9b24a");rect(22,104,76,22,"#2c1650");
+  pixText("КОЛЛАЖ",26,108,2,"#ffd34f",1);
+  /* curved roof band over the glass wall */
+  const archTop=x=>Math.round(138+34*Math.pow(x/121,3));
+  for(let x=0;x<122;x++){
+    const y=archTop(x);
+    rect(x,y,1,7,"#1d5a3e");rect(x,y-1,1,1,"#eaf2ff");rect(x,y+7,1,3,"#cfd8ea");
+    rect(x,y+10,1,196-(y+10),"#223a78");
+  }
+  for(let x=4;x<122;x+=10){const t=archTop(x)+10;rect(x,t,1,196-t,"#14442f")}
+  for(let x=0;x<122;x++)if(archTop(x)+10<165)rect(x,165,1,1,"#14442f");
+  for(let i=0;i<46;i++){const x=2+(rnd()*116|0),t=archTop(x)+12,y=t+(rnd()*(194-t)|0);if(y<194&&y>t)rect(x,y,3,2,rnd()<.6?"#f0c060":"#6f9ae8")}
+  rect(0,196,122,6,"#d9e2f2");rect(0,201,122,1,"#9fb0d0");
+  rect(0,202,122,16,"#1c2d62");
+  for(let x=4;x<122;x+=10)rect(x,202,1,16,"#14442f");
+  for(let i=0;i<30;i++)rect(2+(rnd()*116|0),204+(rnd()*12|0),3,2,["#cfe0ff","#f0c060","#8fb0f0","#ffffff"][i%4]);
+  rect(0,218,122,4,"#14442f");
+  /* tower with orange and green stripes */
+  rect(122,62,58,160,"#1d5a3c");
+  rect(122,62,6,160,"#d46a22");rect(128,62,3,160,"#14442f");rect(131,62,3,160,"#e07a2c");
+  rect(135,62,26,106,"#2b4f9a");
+  for(let x=135;x<161;x+=4)rect(x,62,1,106,"#1b3470");
+  for(let y=62;y<168;y+=6)rect(135,y,26,1,"#1b3470");
+  for(let i=0;i<26;i++)rect(136+(rnd()*22|0),64+(rnd()*100|0),3,2,rnd()<.5?"#f0c060":"#7fa6f0");
+  rect(161,62,5,160,"#d46a22");rect(166,62,14,160,"#14442f");rect(170,62,2,160,"#d46a22");
+  rect(122,59,58,4,"#eaf0ff");
+  rect(135,168,45,11,"#14442f");
+  ell(152,173,6,6,"#ffe0b0");ell(152,173,5,5,"#d8301e");pixText("Б",150,170,1,"#ffffff",0);
+  rect(135,179,45,3,"#14442f");rect(135,182,45,36,"#10204a");
+  rect(139,185,16,31,"#a8873f");rect(141,187,12,27,"#f0c060");rect(147,185,1,31,"#10204a");
+  rect(158,185,16,31,"#16285a");rect(160,214,12,2,"#cfe0ff");
+  ell(147,200,16,18,"rgba(255,200,90,.14)");
+  /* flag pole, banners, lightbox, bin */
+  rect(14,72,2,150,"#e8eefc");rect(12,70,6,3,"#ffd34f");
+  rect(16,74,10,28,"#c2398a");rect(16,82,10,4,"#ffd23f");rect(16,92,10,4,"#3fa0e8");
+  rect(30,160,7,16,"#7a2a6a");rect(52,168,7,16,"#7a2a6a");
+  rect(106,196,14,22,"#3b3f58");rect(107,197,12,17,"#f4c46a");rect(109,199,8,2,"#ffffff");rect(112,202,2,9,"#2f8f3a");rect(110,205,6,3,"#2f8f3a");rect(111,208,4,3,"#2f8f3a");
+  rect(98,208,6,10,"#8e96aa");rect(97,207,8,2,"#aab2c6");
+  /* new year lights */
+  bulbs(2,99,120,99,6,4);bulbs(122,66,178,72,6,4);bulbs(21,130,99,130,8,4);
+  /* pavement, curb, road */
+  rect(0,222,W,14,"#5a5470");for(let x=0;x<W;x+=9)rect(x,222,1,14,"#4a4560");rect(0,228,W,1,"#4a4560");
+  for(let i=0;i<10;i++)ell(rnd()*W,224+rnd()*10,3+rnd()*6,1,"rgba(235,243,255,.8)");
+  rect(0,236,W,3,"#e6eeff");rect(0,239,W,1,"#9aa8d0");
+  for(let y=240;y<H;y+=4){const t=(y-240)/80;rect(0,y,W,4,`rgb(${lerp(36,50,t)|0},${lerp(44,58,t)|0},${lerp(88,104,t)|0})`)}
+  [[40,250,26],[86,255,30],[130,249,20],[60,264,18]].forEach(([x,y,w])=>{rect(x,y,w,1,"#e0a83a");rect(x+3,y+1,w-6,1,"#8a6c34")});
+  ell(26,236,26,5,"#f4f8ff");xmas(26,162);
+  driftFn(x=>304-34*Math.pow(dd(x),1.4)+Math.sin(x*.27)*2.4+Math.sin(x*.7)*1.1,"#e1eaff","#ffffff","#b6c7f1");
+  for(let i=0;i<8;i++)ell(50+rnd()*80,262+rnd()*26,2+rnd()*4,1,"rgba(235,243,255,.85)");
+  driftFn(x=>321-30*Math.pow(dd(x),1.6)+Math.sin(x*.31+1)*2.2,"#f4f8ff","#ffffff","#c3d2f6");
+}
+
+/* map 3: jet on a curved pylon above a roundabout */
+function buildPlane(){
+  const dd=x=>Math.abs(x-90)/90;
+  skyFill(205,[10,12,58],[78,68,146]);starsAt(30,120);
+  firework(142,30,12,["#ff7a5a","#ffd23f","#ffffff"]);firework(26,62,9,["#5ae0ff","#a98bff","#ffffff"]);
+  [[150,150,28,8],[44,172,26,7],[106,186,22,5]].forEach(([x,y,rx,ry])=>{ell(x,y,rx,ry,"#3a4a96");ell(x+3,y-2,rx-6,Math.max(1,ry-2),"#5063b4")});
+  /* brick block behind */
+  rect(0,150,98,66,"#7a3a40");rect(0,146,98,5,"#eaf0ff");rect(0,151,98,1,"#9fb3e8");
+  for(let wy=156;wy<212;wy+=9)for(let wx=5;wx<92;wx+=9){rect(wx-1,wy-1,7,8,"#c9cee4");rect(wx,wy,5,6,rnd()<.55?"#ffd34f":"#2a2f60")}
+  rect(0,214,W,10,"#2b3562");rect(0,211,W,5,"#c9d7fb");rect(0,211,W,1,"#ffffff");
+  firTree(46,160,216,13);firTree(78,170,216,10);firTree(150,164,216,12);firTree(173,148,214,10);
+  /* bare birch with lights */
+  rect(5,64,5,152,"#e8eaf2");rect(5,64,1,152,"#ffffff");rect(9,64,1,152,"#b8bed2");
+  for(let i=0;i<16;i++)rect(5+(rnd()*3|0),70+i*9,2,1,"#2a2a3a");
+  const cols=["#ff5a5a","#ffd23f","#5ae0ff","#7dff7a"];
+  [[8,84,22,60],[8,104,26,92],[7,76,0,62],[8,66,16,46]].forEach(([a,b,c,d],i)=>{pline(a,b,c,d,"#dfe4f0",1);ell(c,d-1,3,1,"#ffffff");rect((a+c)/2|0,(b+d)/2|0,2,2,cols[i%4]);rect(c,d,2,2,cols[(i+2)%4])});
+  /* street lamp */
+  rect(59,140,2,76,"#3a3a4a");pline(60,140,70,136,"#3a3a4a",1);rect(68,134,8,4,"#f2c24a");ell(72,142,11,9,"rgba(255,210,90,.10)");
+  /* concrete pylon */
+  const B=(t,p0,p1,p2)=>(1-t)*(1-t)*p0+2*(1-t)*t*p1+t*t*p2;
+  for(let t=0;t<=1;t+=.004){const x=B(t,80,88,124),y=B(t,252,170,122),th=Math.round(lerp(13,6,t));rect(x-th/2,y,th,2,"#9ea8c0");rect(x-th/2,y,1,2,"#d6deee");rect(x+th/2-1,y,2,2,"#6f7a96")}
+  poly([[70,252],[98,252],[94,230],[76,230]],"#aab4cc");rect(68,250,32,3,"#ffffff");rect(76,228,18,3,"#ffffff");
+  /* the jet */
+  const T0=116,T1=126,N0=172,N1=64,ux=(N0-T0)/83.5,uy=(N1-T1)/83.5,nx=-uy,ny=ux;
+  const C=s=>[T0+(N0-T0)*s,T1+(N1-T1)*s];
+  const P=(s,k,l)=>{const c=C(s);return[c[0]+nx*k+ux*(l||0),c[1]+ny*k+uy*(l||0)]};
+  const SS=[0,.25,.6,.9,1],HW=[2.6,4.6,4.4,2.2,.6];
+  const topE=SS.map((s,i)=>P(s,-HW[i])),botE=SS.map((s,i)=>P(s,HW[i])).reverse();
+  poly([P(.42,-1),P(.64,-1),P(.52,-19,-8)],"#7f8bab");
+  poly([P(0,-2),P(.12,-2.5),P(.02,-13,-5)],"#aab6ce");
+  poly([...topE,...botE],"#b9c4da");
+  poly([P(0,.4),P(.25,.8),P(.6,.8),P(.9,.4),P(.9,1.6),P(.6,3.4),P(.25,3.6),P(0,2)],"#8a96b4");
+  for(let i=0;i<4;i++){const a=P(SS[i],-HW[i]*.6),b=P(SS[i+1],-HW[i+1]*.6);pline(a[0],a[1],b[0],b[1],"#e6eefc",1)}
+  poly([P(.42,2),P(.64,2),P(.52,20,-8)],"#a8b4cc");
+  const star=(p,c)=>{const x=Math.round(p[0]),y=Math.round(p[1]);rect(x-1,y,3,1,c);rect(x,y-1,1,3,c)};
+  star(P(.06,-7),"#e0332e");star(P(.52,11,-4),"#e0332e");
+  const cp=P(.74,-2.8);ell(Math.round(cp[0]),Math.round(cp[1]),2,2,"#7aa8e8");
+  const nn=P(1,0);rect(Math.round(nn[0]),Math.round(nn[1]),2,2,"#4a5470");
+  /* wires with lights, pole, signs */
+  rect(136,86,3,130,"#4a4438");rect(131,88,13,2,"#4a4438");
+  bulbs(0,98,136,90,8,5);bulbs(139,90,179,84,4,5);bulbs(0,112,136,100,10,5);bulbs(139,100,179,96,4,5);
+  rect(166,172,2,44,"#8a90a8");rect(160,160,14,14,"#2f6fe0");poly([[167,163],[172,172],[162,172]],"#ffffff");
+  rect(166,146,2,14,"#8a90a8");poly([[159,136],[175,136],[167,150]],"#d8301e");poly([[162,138],[172,138],[167,147]],"#ffffff");
+  /* road, crossing */
+  rect(0,216,W,104,"#2a3160");rect(0,216,W,3,"#e6eeff");
+  for(let y=219;y<H;y+=4){const t=(y-219)/100;rect(0,y,W,4,`rgb(${lerp(38,52,t)|0},${lerp(46,60,t)|0},${lerp(94,108,t)|0})`)}
+  for(let x=6;x<176;x+=14)rect(x,254,8,14,"#dfe6f8");
+  [[100,230,30],[130,236,24],[40,246,22]].forEach(([x,y,w])=>{rect(x,y,w,1,"#e0a83a");rect(x+3,y+1,w-6,1,"#8a6c34")});
+  ell(26,236,26,5,"#f4f8ff");xmas(26,160);
+  driftFn(x=>306-36*Math.pow(dd(x),1.4)+Math.sin(x*.25)*2.4+Math.sin(x*.7)*1.1,"#e1eaff","#ffffff","#b6c7f1");
+  for(let i=0;i<8;i++)ell(50+rnd()*80,266+rnd()*22,2+rnd()*4,1,"rgba(235,243,255,.85)");
+  driftFn(x=>321-30*Math.pow(dd(x),1.6)+Math.sin(x*.31+1)*2.2,"#f4f8ff","#ffffff","#c3d2f6");
+}
+
+const MAPS=[{name:"Двор",price:0,build:buildScene},{name:"Торговый центр",price:5,build:buildMall},{name:"Самолёт",price:10,build:buildPlane}];
+const sceneCache=[];
+function sceneOf(i){return sceneCache[i]||(sceneCache[i]=makeScene(MAPS[i].build))}
+sceneOf(0);
 
 /* ---------- sprites ---------- */
 function sprite(map,pal,x,y,c){
@@ -371,7 +575,9 @@ function drawDeer(c,s,x,y){
 /* ---------- state ---------- */
 const DY=298;            /* top of deer sprite */
 let state="ready",score=0,best=0,lives=5;
-let wallet=0,total=0,lastScore=0,owned=[0],skinId=0;
+let wallet=0,total=0,lastScore=0,owned=[0],skinId=0,crystals=0,ownedMaps=[0],mapId=0;
+let combo=0,comboT=0,cheatUsed=false,cheatUnlocked=false,runCheat=false;
+const cheats={god:false,slow:false,magnet:false,x2:false,gold:false};
 let deerX=90,hop=0,tx=90,usePointer=false,pointerDown=false;
 let items=[],parts=[],floats=[],spawnT=.6,newRecord=false;
 const held={l:false,r:false};
@@ -383,9 +589,14 @@ try{
     if(Array.isArray(sv.owned))owned=sv.owned.filter(i=>Number.isInteger(i)&&i>=0&&i<SKINS.length);
     if(!owned.includes(0))owned.unshift(0);
     skinId=owned.includes(sv.skinId)?sv.skinId:0;
+    crystals=sv.crystals|0;
+    if(Array.isArray(sv.ownedMaps))ownedMaps=sv.ownedMaps.filter(i=>Number.isInteger(i)&&i>=0&&i<MAPS.length);
+    if(!ownedMaps.includes(0))ownedMaps.unshift(0);
+    mapId=ownedMaps.includes(sv.mapId)?sv.mapId:0;
+    cheatUsed=!!sv.cheatUsed;cheatUnlocked=!!sv.cheatUnlocked;
   }
 }catch(e){}
-function save(){try{localStorage.setItem("mandarin-save",JSON.stringify({best,wallet,total,lastScore,owned,skinId}));localStorage.setItem("mandarin-best",String(best))}catch(e){}}
+function save(){try{localStorage.setItem("mandarin-save",JSON.stringify({best,wallet,total,lastScore,owned,skinId,crystals,ownedMaps,mapId,cheatUsed,cheatUnlocked}));localStorage.setItem("mandarin-best",String(best))}catch(e){}}
 
 const el=id=>document.getElementById(id);
 const scE=el("sc"),hiE=el("hi"),lvE=el("lv"),wlE=el("wl"),panel=el("panel"),pt=el("pt"),pp=el("pp"),go=el("go");
@@ -401,6 +612,7 @@ let ac=null,mute=false;
 function audioInit(){
   if(!ac){try{ac=new(window.AudioContext||window.webkitAudioContext)()}catch(e){}}
   if(ac&&ac.state==="suspended")ac.resume().catch(()=>{});
+  musicStart();
 }
 function tone(f,d,type,v,f2){
   if(!ac||mute)return;
@@ -409,13 +621,54 @@ function tone(f,d,type,v,f2){
   gn.gain.setValueAtTime(v||.04,t);gn.gain.exponentialRampToValueAtTime(.0001,t+d);
   o.connect(gn);gn.connect(ac.destination);o.start(t);o.stop(t+d);
 }
+const mus=el("mus");
+const T=d=>(ac?ac.currentTime:0)+(d||0);
+function note(f,at,d,type,v,f2){
+  if(!ac)return;
+  const o=ac.createOscillator(),gn=ac.createGain();
+  o.type=type||"square";o.frequency.setValueAtTime(f,at);if(f2)o.frequency.linearRampToValueAtTime(f2,at+d);
+  gn.gain.setValueAtTime(.0001,at);gn.gain.exponentialRampToValueAtTime(v||.04,at+.01);gn.gain.exponentialRampToValueAtTime(.0001,at+d);
+  o.connect(gn);gn.connect(ac.destination);o.start(at);o.stop(at+d+.02);
+}
+function sn(f,delay,d,type,v,f2){if(mute||!ac)return;note(f,T(delay),d,type,v,f2)}
+function sfxCatch(gold,c){
+  if(gold){sn(784,0,.1,"square",.04);sn(1047,.08,.12,"square",.04);sn(1319,.16,.2,"square",.045);return}
+  const b=600*Math.pow(1.0595,Math.min(c,8)*2);
+  sn(b,0,.07,"square",.035,b*1.35);sn(b*1.5,.05,.1,"triangle",.045);
+}
+function sfxCombo(n){const b=523*Math.pow(1.0595,Math.min(n,8)*2);sn(b,0,.1,"triangle",.07);sn(b*1.25,.07,.1,"triangle",.07);sn(b*1.5,.14,.12,"triangle",.07);sn(b*2,.22,.26,"triangle",.08)}
+function sfxMiss(){sn(220,0,.22,"sawtooth",.05,110)}
+function sfxOver(){[392,330,262,196].forEach((f,i)=>sn(f,i*.17,.3,"triangle",.07))}
+function sfxBuy(){[523,659,784,1047].forEach((f,i)=>sn(f,i*.08,.14,"square",.04))}
+function sfxNo(){sn(180,0,.18,"sawtooth",.045,120)}
+function sfxClick(){sn(880,0,.04,"square",.025)}
+function sfxExchange(){sn(988,0,.08,"square",.045);sn(1319,.08,.25,"square",.045)}
+function sfxStart(){sn(523,0,.09,"square",.04);sn(784,.09,.14,"square",.04)}
+/* quiet looping festive tune (original) */
+let musicOn=true,mTimer=null,mStep=0,mNext=0;
+const MEL=[659,0,784,0,880,784,659,0,587,0,659,784,880,0,784,0,659,0,784,880,1047,880,784,659,587,659,784,659,587,523,0,0];
+const BASS=[262,262,196,196,220,220,196,196];
+function musicTick(){
+  if(!ac)return;
+  if(!musicOn||ac.state!=="running"){mNext=ac.currentTime+.05;return}
+  while(mNext<ac.currentTime+.45){
+    const i=mStep%MEL.length;
+    if(MEL[i])note(MEL[i],mNext,.28,"sine",.03);
+    if(i%4===0)note(BASS[i/4],mNext,.45,"triangle",.035);
+    mNext+=.2;mStep++;
+  }
+}
+function musicStart(){if(!ac||mTimer)return;mNext=ac.currentTime+.1;mTimer=setInterval(musicTick,120)}
 snd.addEventListener("click",()=>{audioInit();mute=!mute;snd.classList.toggle("off",mute);waves.style.display=mute?"none":""});
+mus.addEventListener("click",()=>{audioInit();musicOn=!musicOn;mus.classList.toggle("off",!musicOn)});
+document.addEventListener("click",e=>{const b=e.target.closest&&e.target.closest("button");if(b&&!b.classList.contains("dir"))sfxClick()},true);
+document.addEventListener("visibilitychange",()=>{if(!ac)return;try{document.hidden?ac.suspend():ac.resume()}catch(e){}});
 
 /* ---------- flow ---------- */
 function showPanel(title,text,btn){pt.textContent=title;pp.textContent=text;go.textContent=btn;panel.hidden=false;go.focus({preventScroll:true})}
 function start(){
   audioInit();
-  score=0;lives=5;items=[];parts=[];floats=[];spawnT=.5;newRecord=false;deerX=tx=90;
+  score=0;lives=5;items=[];parts=[];floats=[];spawnT=.5;newRecord=false;deerX=tx=90;combo=0;comboT=0;runCheat=false;sfxStart();
   state="play";panel.hidden=true;setPauseIcon();hud();
 }
 function setPauseIcon(){icPause.hidden=state==="pause";icPlay.hidden=state!=="pause"}
@@ -427,10 +680,10 @@ function togglePause(){
 function gameOver(){
   state="over";
   lastScore=score;
-  if(score>best){best=score;newRecord=true}
+  if(!runCheat&&score>best){best=score;newRecord=true}
   save();
-  hud();tone(300,.55,"triangle",.06,70);
-  showPanel("Игра окончена",(newRecord?"Новый рекорд! ":"")+"Счёт: "+score+". Рекорд: "+best,"Ещё раз");
+  hud();sfxOver();
+  showPanel("Игра окончена",(runCheat?"Рекорд не засчитан: были читы. ":newRecord?"Новый рекорд! ":"")+"Счёт: "+score+". Рекорд: "+best,"Ещё раз");
   setPauseIcon();
 }
 go.addEventListener("click",()=>{if(state==="pause")togglePause();else start()});
@@ -471,6 +724,16 @@ addEventListener("keyup",e=>{
 addEventListener("blur",()=>{held.l=held.r=false});
 
 /* ---------- update ---------- */
+const comboEl=el("combo");
+function showCombo(n,bonus){
+  comboEl.textContent="";
+  const t=document.createElement("span");t.textContent="КОМБО";
+  const s=document.createElement("small");s.textContent="x"+n+(bonus?"  +"+bonus:"");
+  comboEl.append(t,s);
+  comboEl.classList.remove("pop");void comboEl.offsetWidth;comboEl.classList.add("pop");
+  sfxCombo(n);
+  burst(deerX,DY-6,["#ffd23f","#ff8a1a","#ffffff","#ff5a8a"],8+Math.min(n,6)*3,70);
+}
 function burst(x,y,cols,n,sp){for(let i=0;i<n;i++){const a=Math.random()*Math.PI*2,s=sp*(.4+Math.random()*.8);parts.push({x,y,vx:Math.cos(a)*s,vy:Math.sin(a)*s-sp*.5,life:.45+Math.random()*.3,c:cols[i%cols.length]})}}
 function update(dt,t){
   flakes.forEach(f=>{f.y+=f.v*dt;f.x+=Math.sin(t*1.3+f.p)*6*dt;if(f.y>H){f.y=-2;f.x=Math.random()*W}if(f.x<-2)f.x=W;if(f.x>W+2)f.x=-2});
@@ -479,6 +742,8 @@ function update(dt,t){
   hop=Math.max(0,hop-26*dt);
   if(state!=="play")return;
 
+  comboT=Math.max(0,comboT-dt);if(comboT===0)combo=0;
+  if(cheats.god||cheats.slow||cheats.magnet||cheats.x2||cheats.gold)runCheat=true;
   const dir=(held.r?1:0)-(held.l?1:0);
   if(dir!==0){usePointer=false;deerX+=dir*175*dt}
   else if(usePointer){const d=tx-deerX,m=420*dt;deerX+=Math.max(-m,Math.min(m,d))}
@@ -486,25 +751,32 @@ function update(dt,t){
 
   spawnT-=dt;
   if(spawnT<=0){
-    const gold=Math.random()<.08;
-    items.push({x:8+Math.random()*(W-16),y:-6,vy:Math.min(135,50+score*1.5)*(.85+Math.random()*.35),gold});
-    spawnT=Math.max(.42,1.15-score*.012)*(.8+Math.random()*.45);
+    const vy=Math.min(135,50+score*1.5)*(.85+Math.random()*.35);
+    if(score>=4&&Math.random()<.22){
+      const cx=20+Math.random()*(W-40);
+      for(let k=0;k<3;k++)items.push({x:cx+(k-1)*9,y:-6-k*3,vy,gold:cheats.gold});
+    }else items.push({x:8+Math.random()*(W-16),y:-6,vy,gold:cheats.gold||Math.random()<.08});
+    spawnT=Math.max(.5,1.2-score*.01)*(.8+Math.random()*.45);
   }
   for(const it of items){
-    it.y+=it.vy*dt;
-    if(!it.done&&it.y+4>=DY+2&&it.y<=DY+10&&Math.abs(it.x-deerX)<11){
+    it.y+=it.vy*dt*(cheats.slow?.5:1);
+    if(cheats.magnet&&it.y>60)it.x+=(deerX-it.x)*Math.min(1,3*dt);
+    if(!it.done&&it.y+4>=DY+2&&it.y<=DY+10&&Math.abs(it.x-deerX)<(cheats.magnet?22:11)){
       it.done=true;
-      const pts=it.gold?5:1;score+=pts;wallet+=pts;total+=pts;hop=4;hud();
-      if(score>best){best=score;newRecord=true;hud()}
+      combo=comboT>0?combo+1:1;comboT=1.15;
+      const bonus=combo>=3?combo-2:0,pts=((it.gold?5:1)+bonus)*(cheats.x2?2:1);
+      score+=pts;wallet+=pts;total+=pts;hop=4;hud();
+      if(combo>=2)showCombo(combo,bonus);
+      if(!runCheat&&score>best){best=score;newRecord=true;hud()}
       save();
       burst(it.x,DY+2,it.gold?["#ffd23f","#fff6b0"]:["#ff8a1a","#ffc34d"],it.gold?12:7,40);
       floats.push({x:it.x,y:DY-4,life:.7,text:"+"+pts,c:it.gold?"#ffd23f":"#ffffff"});
-      if(it.gold){tone(660,.09,"square",.04,990);setTimeout(()=>tone(990,.12,"square",.04,1320),90)}else tone(640,.08,"square",.035,900);
+      sfxCatch(it.gold,combo);
     }else if(!it.done&&it.y>H-1){
       it.done=true;burst(it.x,H-4,["#ffffff","#ff8a1a","#e1eaff"],8,34);
       if(!it.gold){
-        lives--;hud();lvE.classList.add("hit");setTimeout(()=>lvE.classList.remove("hit"),320);
-        tone(210,.2,"sawtooth",.045,110);
+        if(!cheats.god)lives--;hud();lvE.classList.add("hit");setTimeout(()=>lvE.classList.remove("hit"),320);
+        sfxMiss();combo=0;comboT=0;
         if(lives<=0){gameOver();break}
       }
     }
@@ -514,7 +786,7 @@ function update(dt,t){
 
 /* ---------- draw ---------- */
 function draw(t){
-  ctx.drawImage(bg,0,0);
+  ctx.drawImage(sceneOf(mapId),0,0);
   ctx.fillStyle="#ffffff";
   flakes.forEach(f=>ctx.fillRect(Math.round(f.x),Math.round(f.y),f.s,f.s));
   for(const it of items){
@@ -538,7 +810,7 @@ function frame(ts){
 requestAnimationFrame(frame);
 /* ---------- shop + share ---------- */
 const menu=el("menu"),grid=el("grid"),shopMsg=el("shop-msg"),shareMsg=el("share-msg"),shareTa=el("sharetext");
-const tabShop=el("tab-shop"),tabShare=el("tab-share"),viewShop=el("view-shop"),viewShare=el("view-share");
+const tabShop=el("tab-shop"),tabMaps=el("tab-maps"),tabShare=el("tab-share"),tabCheat=el("tab-cheat"),viewShop=el("view-shop"),viewMaps=el("view-maps"),viewShare=el("view-share"),viewCheat=el("view-cheat");
 
 function drawPreview(cnv,s){
   const c=cnv.getContext("2d");c.fillStyle="#22307a";c.fillRect(0,0,20,20);
@@ -563,33 +835,69 @@ function renderShop(){
 function pickSkin(i){
   const s=SKINS[i];audioInit();
   if(owned.includes(i)){skinId=i;shopMsg.textContent="Надет скин: "+s.name}
-  else if(wallet>=s.price){wallet-=s.price;owned.push(i);skinId=i;shopMsg.textContent="Куплено: "+s.name+"!";tone(520,.1,"square",.04,780);setTimeout(()=>tone(780,.14,"square",.04,1040),100)}
-  else{shopMsg.textContent="Не хватает мандаринов: ещё "+(s.price-wallet);tone(200,.15,"sawtooth",.04,140)}
+  else if(wallet>=s.price){wallet-=s.price;owned.push(i);skinId=i;shopMsg.textContent="Куплено: "+s.name+"!";sfxBuy()}
+  else{shopMsg.textContent="Не хватает мандаринов: ещё "+(s.price-wallet);sfxNo()}
   save();hud();renderShop();
 }
 function shareString(){
   const s=SKINS[skinId];
-  return "🍊 Ловец Мандаринов\nМой рекорд: "+best+"\nПоследний счёт: "+lastScore+"\nСобрано мандаринов: "+total+"\nСкин: "+s.name+" ("+owned.length+" из "+SKINS.length+")";
+  return "🍊 Ловец Мандаринов\nМой рекорд: "+best+"\nПоследний счёт: "+lastScore+"\nСобрано мандаринов: "+total+"\nСкин: "+s.name+" ("+owned.length+" из "+SKINS.length+")\nКарта: "+MAPS[mapId].name+" ("+ownedMaps.length+" из "+MAPS.length+")"+(cheatUsed?"\nЧиты: использовались":"");
 }
+const mapGrid=el("mapgrid"),mapsMsg=el("maps-msg");
+function pl(n,a,b,c){const m=n%100,k=n%10;return m>10&&m<20?c:k===1?a:k>1&&k<5?b:c}
+function renderMaps(){
+  el("wl3").textContent=wallet;el("cr").textContent=crystals;
+  mapGrid.textContent="";
+  MAPS.forEach((m,i)=>{
+    const card=document.createElement("div");card.className="skin"+(mapId===i?" cur":"");
+    const cnv=document.createElement("canvas");cnv.className="map";cnv.width=45;cnv.height=80;
+    const c=cnv.getContext("2d");c.imageSmoothingEnabled=false;c.drawImage(sceneOf(i),0,0,45,80);
+    const nm=document.createElement("div");nm.className="nm";nm.textContent=m.name;
+    const b=document.createElement("button");b.className="pxbtn buy";b.id="map-"+i;
+    if(mapId===i){b.textContent="Выбрана";b.classList.add("on");b.disabled=true}
+    else if(ownedMaps.includes(i)){b.textContent="Выбрать"}
+    else{b.textContent=m.price;b.classList.add("cprice");if(crystals<m.price)b.classList.add("dis")}
+    b.addEventListener("click",()=>pickMap(i));
+    card.append(cnv,nm,b);mapGrid.appendChild(card);
+  });
+}
+function pickMap(i){
+  const m=MAPS[i];audioInit();
+  if(ownedMaps.includes(i)){mapId=i;mapsMsg.textContent="Карта: "+m.name}
+  else if(crystals>=m.price){crystals-=m.price;ownedMaps.push(i);mapId=i;mapsMsg.textContent="Куплена карта: "+m.name+"!";sfxBuy()}
+  else{mapsMsg.textContent="Не хватает кристаллов: ещё "+(m.price-crystals);sfxNo()}
+  save();renderMaps();
+}
+function exchange(all){
+  const n=all?Math.floor(wallet/100):(wallet>=100?1:0);
+  if(!n){mapsMsg.textContent="Нужно минимум 100 мандаринов";sfxNo();return}
+  wallet-=n*100;crystals+=n;
+  mapsMsg.textContent="Обменяно: "+n+" "+pl(n,"кристалл","кристалла","кристаллов");
+  sfxExchange();save();hud();renderMaps();
+}
+el("ex1").addEventListener("click",()=>exchange(false));
+el("exall").addEventListener("click",()=>exchange(true));
 function showTab(t){
-  const shopOn=t==="shop";
-  tabShop.classList.toggle("on",shopOn);tabShare.classList.toggle("on",!shopOn);
-  viewShop.hidden=!shopOn;viewShare.hidden=shopOn;
-  if(shopOn)renderShop();else{shareTa.value=shareString();shareMsg.textContent=""}
+  const on={shop:t==="shop",maps:t==="maps",share:t==="share",cheat:t==="cheat"};
+  tabShop.classList.toggle("on",on.shop);tabMaps.classList.toggle("on",on.maps);tabShare.classList.toggle("on",on.share);tabCheat.classList.toggle("on",on.cheat);
+  viewShop.hidden=!on.shop;viewMaps.hidden=!on.maps;viewShare.hidden=!on.share;viewCheat.hidden=!on.cheat;
+  if(on.shop)renderShop();else if(on.maps)renderMaps();else if(on.cheat)renderCheats();else{shareTa.value=shareString();shareMsg.textContent=""}
 }
 function openMenu(t){
   held.l=held.r=false;
   if(state==="play")togglePause();
   menu.hidden=false;showTab(t);
-  (t==="shop"?tabShop:tabShare).focus({preventScroll:true});
+  ({shop:tabShop,maps:tabMaps,share:tabShare,cheat:tabCheat}[t]||tabShop).focus({preventScroll:true});
 }
 function closeMenu(){menu.hidden=true;go.focus({preventScroll:true})}
 tabShop.addEventListener("click",()=>showTab("shop"));
 tabShare.addEventListener("click",()=>showTab("share"));
+tabMaps.addEventListener("click",()=>showTab("maps"));
 el("menu-x").addEventListener("click",closeMenu);
 el("shop").addEventListener("click",()=>{audioInit();openMenu("shop")});
 el("o-shop").addEventListener("click",()=>openMenu("shop"));
 el("o-share").addEventListener("click",()=>openMenu("share"));
+el("o-maps").addEventListener("click",()=>openMenu("maps"));
 el("copy").addEventListener("click",async()=>{
   shareTa.value=shareString();
   try{await navigator.clipboard.writeText(shareTa.value);shareMsg.textContent="Скопировано. Теперь открой пост и вставь текст в комментарии."}
@@ -599,6 +907,57 @@ el("copy").addEventListener("click",async()=>{
     shareMsg.textContent=ok?"Скопировано. Теперь открой пост и вставь текст в комментарии.":"Текст выделен. Скопируй его вручную."
   }
 });
+
+/* ---------- secret cheat menu ---------- */
+const tabsEl=document.querySelector(".tabs"),cheatGrid=el("cheatgrid"),cheatMsg=el("cheat-msg");
+let resetArmed=false;
+function applyCheatUi(){tabCheat.hidden=!cheatUnlocked;tabsEl.classList.toggle("four",cheatUnlocked)}
+function mark(){cheatUsed=true;save()}
+function cheatBtn(label,fn,on){
+  const b=document.createElement("button");b.className="pxbtn buy cbtn"+(on?" on":"");b.textContent=label;
+  b.addEventListener("click",fn);cheatGrid.appendChild(b);return b;
+}
+function renderCheats(){
+  cheatGrid.textContent="";
+  const act=(msg,fn)=>()=>{resetArmed=false;fn();mark();hud();cheatMsg.textContent=msg;sfxBuy();renderCheats()};
+  cheatBtn("+100 мандаринов",act("Добавлено 100 мандаринов",()=>{wallet+=100}));
+  cheatBtn("+1000 мандаринов",act("Добавлено 1000 мандаринов",()=>{wallet+=1000}));
+  cheatBtn("+5 кристаллов",act("Добавлено 5 кристаллов",()=>{crystals+=5}));
+  cheatBtn("Открыть всё",act("Открыты все скины и карты",()=>{owned=SKINS.map((_,i)=>i);ownedMaps=MAPS.map((_,i)=>i)}));
+  cheatBtn("Жизни до 5",act("Жизни восстановлены",()=>{lives=5}));
+  [["god","Бессмертие"],["slow","Замедление"],["magnet","Магнит"],["x2","Очки x2"],["gold","Золотой дождь"]].forEach(([k,name])=>{
+    cheatBtn(name+": "+(cheats[k]?"вкл":"выкл"),()=>{
+      resetArmed=false;cheats[k]=!cheats[k];if(cheats[k])mark();
+      cheatMsg.textContent=name+(cheats[k]?" включено. Рекорд в этом забеге не засчитается.":" выключено");
+      sfxClick();renderCheats();
+    },cheats[k]);
+  });
+  cheatBtn(resetArmed?"Точно сбросить?":"Сбросить прогресс",()=>{
+    if(!resetArmed){resetArmed=true;cheatMsg.textContent="Нажми ещё раз: сотрутся мандарины, кристаллы, скины, карты и рекорд";renderCheats();return}
+    resetArmed=false;
+    best=0;wallet=0;total=0;lastScore=0;owned=[0];skinId=0;crystals=0;ownedMaps=[0];mapId=0;cheatUsed=false;
+    Object.keys(cheats).forEach(k=>{cheats[k]=false});
+    save();hud();cheatMsg.textContent="Прогресс сброшен";sfxNo();renderCheats();
+  });
+  cheatBtn("Скрыть меню",()=>{cheatUnlocked=false;resetArmed=false;save();applyCheatUi();closeMenu()});
+}
+function unlockCheats(){
+  if(!cheatUnlocked){cheatUnlocked=true;save();applyCheatUi();sfxBuy()}
+  openMenu("cheat");
+}
+tabCheat.addEventListener("click",()=>showTab("cheat"));
+/* secret: tap the title 7 times, or type "cheat" / "читы" on a keyboard */
+let tTaps=0,tTimer=null,keyBuf="";
+pt.addEventListener("click",()=>{
+  tTaps++;clearTimeout(tTimer);tTimer=setTimeout(()=>{tTaps=0},2500);
+  if(tTaps>=7){tTaps=0;unlockCheats()}
+});
+addEventListener("keydown",e=>{
+  if(!e.key||e.key.length!==1)return;
+  keyBuf=(keyBuf+e.key.toLowerCase()).slice(-5);
+  if(keyBuf==="cheat"||keyBuf.endsWith("читы")){keyBuf="";unlockCheats()}
+});
+applyCheatUi();
 
 showPanel("Ловец Мандаринов","Лови мандарины оленем. Двигай пальцем или стрелками ← →","Играть");
 })();
