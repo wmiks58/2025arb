@@ -1,0 +1,601 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Ловец Мандаринов</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+<style>
+/* Layout: one portrait 9:16 stage centred on any screen; pixel-art scene on canvas, HUD and controls in DOM on top. */
+:root{
+  --bg:#050816;
+  --ink:#f4f7ff;
+  --shade:#0a1038;
+  --panel:#10195a;
+  --orange:#ff9a1f;
+  --orange-deep:#e86f0a;
+  --edge:#7a3208;
+  --hi:#ffc468;
+  --gold:#ffd23f;
+  --alert:#ff6b5a;
+  --px:"Press Start 2P",ui-monospace,Menlo,Consolas,monospace;
+  color-scheme:dark;
+}
+html,body{height:100%}
+body{
+  margin:0;background:var(--bg);color:var(--ink);font-family:var(--px);
+  overflow:hidden;display:grid;place-items:center;
+  touch-action:none;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;
+}
+.stage{position:relative;--u:2px;width:calc(var(--u)*180);height:calc(var(--u)*320);overflow:hidden;background:var(--bg)}
+canvas{display:block;width:100%;height:100%;image-rendering:pixelated;image-rendering:crisp-edges;image-rendering:pixelated}
+.hud{position:absolute;left:calc(var(--u)*7);top:calc(var(--u)*7);font-size:calc(var(--u)*5.2);line-height:1.75;
+  text-shadow:calc(var(--u)*.7) calc(var(--u)*.7) 0 var(--shade);pointer-events:none;font-variant-numeric:tabular-nums}
+#lv.hit{color:var(--alert)}
+.pxbtn{
+  appearance:none;-webkit-appearance:none;margin:0;padding:0;cursor:pointer;color:#fff;font-family:var(--px);
+  background:linear-gradient(var(--orange),var(--orange-deep));
+  border:calc(var(--u)*1.2) solid var(--edge);border-radius:calc(var(--u)*2.5);
+  box-shadow:inset 0 0 0 calc(var(--u)*.8) var(--hi);
+  display:grid;place-items:center;touch-action:none;-webkit-tap-highlight-color:transparent;
+}
+.pxbtn:active{filter:brightness(.88)}
+.pxbtn:focus-visible{outline:calc(var(--u)*1) solid #fff;outline-offset:calc(var(--u)*1)}
+.ibtn{position:absolute;top:calc(var(--u)*7);width:calc(var(--u)*14);height:calc(var(--u)*14)}
+.ibtn svg{width:70%;height:70%;display:block}
+#pz{right:calc(var(--u)*7)}
+#snd{right:calc(var(--u)*25)}
+#snd.off{filter:grayscale(.8) brightness(.8)}
+.dir{position:absolute;top:calc(var(--u)*257);width:calc(var(--u)*30);height:calc(var(--u)*30)}
+.dir svg{width:78%;height:78%;display:block}
+#bl{left:calc(var(--u)*11)}
+#br{right:calc(var(--u)*11)}
+.panel{position:absolute;inset:0;display:grid;place-content:center;padding:0 calc(var(--u)*12);background:rgba(5,8,30,.58)}
+.card{background:var(--panel);border:calc(var(--u)*1.5) solid var(--orange);box-shadow:0 0 0 calc(var(--u)*1) var(--edge),calc(var(--u)*2) calc(var(--u)*2) 0 calc(var(--u)*1) rgba(0,0,0,.45);
+  padding:calc(var(--u)*10) calc(var(--u)*9);text-align:center;display:grid;gap:calc(var(--u)*7);justify-items:center}
+.card h1{margin:0;font-size:calc(var(--u)*8);line-height:1.45;color:var(--gold);font-weight:400;text-wrap:balance;text-shadow:calc(var(--u)*.8) calc(var(--u)*.8) 0 var(--edge)}
+.card p{margin:0;font-size:calc(var(--u)*4.2);line-height:1.9;text-wrap:balance}
+.go{font-size:calc(var(--u)*5.6);padding:calc(var(--u)*4) calc(var(--u)*9);display:block}
+#shop{right:calc(var(--u)*43)}
+.row{display:flex;gap:calc(var(--u)*4);flex-wrap:wrap;justify-content:center}
+.sm{font-size:calc(var(--u)*4);padding:calc(var(--u)*3) calc(var(--u)*4);text-decoration:none;display:block;line-height:1.2}
+.sm.alt{background:linear-gradient(#4a63d6,#2f43a8);border-color:#141f66;box-shadow:inset 0 0 0 calc(var(--u)*.8) #7f95f0}
+.menu{padding:calc(var(--u)*5);background:rgba(5,8,30,.82);place-content:stretch;grid-template-rows:minmax(0,1fr)}
+.sheet{background:var(--panel);border:calc(var(--u)*1.5) solid var(--orange);box-shadow:0 0 0 calc(var(--u)*1) var(--edge);display:grid;grid-template-rows:auto minmax(0,1fr);min-height:0;overflow:hidden}
+.tabs{display:flex;gap:calc(var(--u)*2);padding:calc(var(--u)*3);border-bottom:calc(var(--u)*1) solid var(--edge);align-items:center}
+.tab{font-family:var(--px);font-size:calc(var(--u)*4.2);padding:calc(var(--u)*2.6) calc(var(--u)*3);background:transparent;color:var(--ink);border:calc(var(--u)*.8) solid #3b4aa6;border-radius:calc(var(--u)*2);cursor:pointer}
+.tab.on{background:var(--orange);color:#fff;border-color:var(--edge)}
+.tab:focus-visible{outline:calc(var(--u)*1) solid #fff}
+.xbtn{margin-left:auto;width:calc(var(--u)*11);height:calc(var(--u)*11);flex:none}
+.xbtn svg{width:60%;height:60%;display:block}
+.view{overflow-y:auto;touch-action:pan-y;padding:calc(var(--u)*4);min-height:0;display:grid;gap:calc(var(--u)*4);align-content:start}
+.wallet{font-size:calc(var(--u)*4.4);color:var(--gold);line-height:1.6}
+.msg{font-size:calc(var(--u)*3.8);line-height:1.7;min-height:calc(var(--u)*7);color:var(--hi)}
+.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:calc(var(--u)*3)}
+.skin{background:#1a2680;border:calc(var(--u)*.8) solid #3b4aa6;border-radius:calc(var(--u)*2);padding:calc(var(--u)*3);display:grid;gap:calc(var(--u)*2.5);justify-items:center;min-width:0}
+.skin.cur{border-color:var(--gold)}
+.skin canvas{width:calc(var(--u)*30);height:calc(var(--u)*30);image-rendering:pixelated;background:#22307a;border-radius:calc(var(--u)*1.5)}
+.skin .nm{font-size:calc(var(--u)*4);line-height:1.4;text-align:center;overflow-wrap:anywhere}
+.buy{font-size:calc(var(--u)*4);padding:calc(var(--u)*2.4);width:100%;border-radius:calc(var(--u)*1.6);display:block;text-align:center}
+.buy.dis{filter:grayscale(.7) brightness(.75)}
+.buy.on{background:#2f8f3a;border-color:#145a1f;box-shadow:inset 0 0 0 calc(var(--u)*.6) #7fe08a}
+.price::before{content:"";display:inline-block;width:calc(var(--u)*3);height:calc(var(--u)*3);background:#ff8a1a;border-radius:50%;margin-right:calc(var(--u)*1.2)}
+#sharetext{width:100%;box-sizing:border-box;min-height:calc(var(--u)*50);background:#0b1250;color:var(--ink);border:calc(var(--u)*.8) solid #3b4aa6;font-family:var(--px);font-size:calc(var(--u)*3.8);line-height:1.8;padding:calc(var(--u)*3);resize:none;user-select:text;-webkit-user-select:text;border-radius:calc(var(--u)*1.5)}
+.steps{margin:0;padding-left:calc(var(--u)*6);font-size:calc(var(--u)*3.8);line-height:1.9;display:grid;gap:calc(var(--u)*1.5)}
+.view .row{justify-content:stretch}
+.view .row .sm{flex:1 1 calc(var(--u)*50);text-align:center}
+@media (prefers-reduced-motion:reduce){.pxbtn:active{filter:none}}
+</style>
+
+<div class="stage" id="stage">
+  <canvas id="cv" width="180" height="320" aria-label="Игровое поле"></canvas>
+
+  <div class="hud">
+    <div>Счёт: <span id="sc">0</span></div>
+    <div>Рекорд: <span id="hi">0</span></div>
+    <div id="lv">Жизни: 5</div>
+    <div>Мандарины: <span id="wl">0</span></div>
+  </div>
+
+  <button class="pxbtn ibtn" id="snd" aria-label="Звук">
+    <svg viewBox="0 0 12 12" shape-rendering="crispEdges"><polygon points="1,4.5 3.5,4.5 6.5,2 6.5,10 3.5,7.5 1,7.5" fill="#fff" stroke="#7a3208" stroke-width=".8"/><path d="M8.2 4.2 Q9.6 6 8.2 7.8 M9.6 2.8 Q12 6 9.6 9.2" fill="none" stroke="#fff" stroke-width="1" id="waves"/></svg>
+  </button>
+  <button class="pxbtn ibtn" id="shop" aria-label="Магазин скинов">
+    <svg viewBox="0 0 12 12" shape-rendering="crispEdges"><path d="M4 4.5 V3.4 Q4 1.4 6 1.4 Q8 1.4 8 3.4 V4.5" fill="none" stroke="#fff" stroke-width="1"/><rect x="2" y="4.5" width="8" height="6.5" fill="#fff" stroke="#7a3208" stroke-width=".8"/></svg>
+  </button>
+  <button class="pxbtn ibtn" id="pz" aria-label="Пауза">
+    <svg viewBox="0 0 12 12" shape-rendering="crispEdges"><g id="ic-pause"><rect x="2.5" y="2" width="2.6" height="8" fill="#fff" stroke="#7a3208" stroke-width=".7"/><rect x="6.9" y="2" width="2.6" height="8" fill="#fff" stroke="#7a3208" stroke-width=".7"/></g><polygon id="ic-play" points="3,1.5 10.5,6 3,10.5" fill="#fff" stroke="#7a3208" stroke-width=".8" hidden/></svg>
+  </button>
+
+  <button class="pxbtn dir" id="bl" aria-label="Влево">
+    <svg viewBox="0 0 12 12" shape-rendering="crispEdges"><polygon points="0.8,6 5.5,1.2 5.5,4 11.2,4 11.2,8 5.5,8 5.5,10.8" fill="#fff" stroke="#7a3208" stroke-width=".8" stroke-linejoin="round"/></svg>
+  </button>
+  <button class="pxbtn dir" id="br" aria-label="Вправо">
+    <svg viewBox="0 0 12 12" shape-rendering="crispEdges"><polygon points="11.2,6 6.5,1.2 6.5,4 0.8,4 0.8,8 6.5,8 6.5,10.8" fill="#fff" stroke="#7a3208" stroke-width=".8" stroke-linejoin="round"/></svg>
+  </button>
+
+  <div class="panel" id="panel">
+    <div class="card">
+      <h1 id="pt">Ловец Мандаринов</h1>
+      <p id="pp">Лови мандарины оленем. Двигай пальцем или стрелками ← →</p>
+      <button class="pxbtn go" id="go">Играть</button>
+      <div class="row">
+        <button class="pxbtn sm" id="o-shop">Магазин</button>
+        <button class="pxbtn sm alt" id="o-share">Поделиться</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="panel menu" id="menu" hidden>
+    <div class="sheet">
+      <div class="tabs" role="tablist">
+        <button class="tab on" id="tab-shop" role="tab">Магазин</button>
+        <button class="tab" id="tab-share" role="tab">Поделиться</button>
+        <button class="pxbtn xbtn" id="menu-x" aria-label="Закрыть"><svg viewBox="0 0 12 12" shape-rendering="crispEdges"><path d="M2 2 L10 10 M10 2 L2 10" stroke="#fff" stroke-width="2.2" fill="none"/></svg></button>
+      </div>
+      <div class="view" id="view-shop">
+        <div class="wallet">Мандарины: <span id="wl2">0</span></div>
+        <div class="msg" id="shop-msg">Собирай мандарины и покупай одежду для оленя.</div>
+        <div class="grid" id="grid"></div>
+      </div>
+      <div class="view" id="view-share" hidden>
+        <textarea id="sharetext" readonly aria-label="Текст результата"></textarea>
+        <ol class="steps">
+          <li>Скопируй результат</li>
+          <li>Открой пост в Telegram</li>
+          <li>Вставь текст в комментарии</li>
+        </ol>
+        <div class="row">
+          <button class="pxbtn sm" id="copy">Скопировать</button>
+          <a class="pxbtn sm alt" id="tg" href="https://t.me/arbekovopnz58/12019" target="_blank" rel="noopener">Открыть пост</a>
+        </div>
+        <div class="msg" id="share-msg"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+(()=>{
+"use strict";
+const W=180,H=320;
+const cv=document.getElementById("cv"),ctx=cv.getContext("2d");
+const stage=document.getElementById("stage");
+ctx.imageSmoothingEnabled=false;
+
+/* ---------- fit stage to screen ---------- */
+function fit(){
+  const bw=document.body.clientWidth||innerWidth,bh=document.body.clientHeight||innerHeight;
+  const s=Math.max(1,Math.min(bw/W,bh/H));
+  stage.style.setProperty("--u",s+"px");
+}
+addEventListener("resize",fit);addEventListener("orientationchange",()=>setTimeout(fit,150));
+fit();requestAnimationFrame(fit);
+
+/* ---------- pixel scene (drawn once) ---------- */
+function mk(seed){let a=seed;return()=>{a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
+const rnd=mk(11);
+const bg=document.createElement("canvas");bg.width=W;bg.height=H;
+const g=bg.getContext("2d");
+const rect=(x,y,w,h,c)=>{g.fillStyle=c;g.fillRect(Math.round(x),Math.round(y),w,h)};
+const ell=(cx,cy,rx,ry,c)=>{g.fillStyle=c;for(let y=-ry;y<=ry;y++){const w=Math.floor(rx*Math.sqrt(1-(y*y)/(ry*ry))+.5);g.fillRect(Math.round(cx-w),Math.round(cy+y),w*2+1,1)}};
+const lerp=(a,b,t)=>a+(b-a)*t;
+const skyAt=y=>{const t=Math.min(1,y/200);return`rgb(${lerp(10,58,t)|0},${lerp(16,82,t)|0},${lerp(72,166,t)|0})`};
+
+function buildScene(){
+  for(let y=0;y<H;y+=2)rect(0,y,W,2,skyAt(y));
+  for(let i=0;i<30;i++)rect(rnd()*W|0,rnd()*140|0,1,1,"#cfd8ff");
+  [[22,162,28,7],[152,152,30,8],[104,170,24,5]].forEach(([x,y,rx,ry])=>{ell(x,y,rx,ry,"#35519f");ell(x+3,y-2,rx-6,ry-2,"#4565b8")});
+  ell(28,38,9,9,"#f6d98a");ell(33,35,8,8,skyAt(35));
+
+  /* towers */
+  function tower(x,y,w,h,body,side){
+    rect(x,y,w,h,body);const sw=Math.floor(w*.28);rect(x+w-sw,y,sw,h,side);
+    rect(x-1,y-1,w+2,3,"#eaf0ff");rect(x-1,y+2,w+2,1,"#9fb3e8");
+    for(let wy=y+6;wy<y+h-4;wy+=5)for(let wx=x+3;wx<x+w-3;wx+=5){const r=rnd();rect(wx,wy,3,3,r<.55?"#ffd34f":r<.7?"#ee9a2a":"#1c2766")}
+  }
+  tower(94,113,44,62,"#2a3877","#202b62");
+  tower(32,115,30,60,"#2c3a80","#222d68");
+  tower(62,93,33,82,"#34458f","#27357a");
+  rect(70,166,40,9,"#3b4180");rect(69,164,42,3,"#e6eeff");
+  [74,82,90,98].forEach(x=>rect(x,169,4,3,"#ffcf4a"));
+
+  /* ground */
+  for(let y=172;y<H;y+=4)rect(0,y,W,4,`rgb(${lerp(38,58,(y-172)/148)|0},${lerp(48,66,(y-172)/148)|0},${lerp(92,108,(y-172)/148)|0})`);
+  rect(0,171,W,6,"#c9d7fb");rect(0,171,W,1,"#ffffff");
+
+  /* billboard */
+  rect(33,160,24,22,"#6b6f8a");rect(35,162,20,16,"#1d3a5a");rect(33,159,24,3,"#eef3ff");
+  rect(44,166,2,9,"#2f8f3a");rect(42,169,6,3,"#2f8f3a");rect(41,172,8,3,"#2f8f3a");rect(44,164,2,2,"#ffd23f");
+
+  /* fir trees */
+  function fir(cx,top,base,hw){
+    for(let y=top;y<=base;y++){
+      const p=(y-top)/(base-top),L=Math.floor(p*4),lp=p*4-L;
+      const half=Math.round(hw*((L+lp*.9+.4)/4.4));
+      const c=lp<.25?"#e9f1ff":lp<.55?"#2d6f66":"#1b4c4e";
+      rect(cx-half,y,half*2+1,1,c);
+      if(rnd()<.12)rect(cx-half+Math.floor(rnd()*half*2),y,1,1,"#ffffff");
+    }
+    rect(cx-1,base,3,3,"#3b2a22");
+  }
+  fir(168,126,196,15);fir(140,164,196,9);fir(8,135,200,13);fir(33,166,196,8);fir(177,150,200,9);fir(1,152,206,9);
+
+  /* wet road reflections */
+  [[44,204,20],[78,208,26],[112,203,16],[56,214,14],[96,216,22]].forEach(([x,y,w])=>{rect(x,y,w,1,"#e0a83a");rect(x+2,y+1,w-5,1,"#9a7a3a")});
+
+  /* car */
+  rect(30,209,46,2,"#1b2247");
+  rect(28,198,48,10,"#a9b0c9");rect(28,206,48,2,"#7e86a8");
+  rect(37,189,29,10,"#aab1ca");rect(38,191,12,7,"#28335c");rect(52,191,12,7,"#28335c");
+  rect(36,188,31,2,"#f0f5ff");rect(28,197,48,1,"#d5dbf0");
+  rect(74,200,3,3,"#fff2a0");rect(28,200,2,3,"#d6402e");
+  ell(39,208,4,4,"#14182f");ell(39,208,2,2,"#8e95b4");
+  ell(66,208,4,4,"#14182f");ell(66,208,2,2,"#8e95b4");
+
+  /* street lamp (left) */
+  rect(21,150,3,72,"#3a2e2a");rect(20,214,5,8,"#2a211f");
+  ell(22,146,13,13,"rgba(255,200,80,.16)");
+  rect(17,139,10,11,"#f2b02a");rect(19,141,6,7,"#ffe27a");rect(16,138,12,2,"#3a2e2a");rect(16,134,12,5,"#f4f8ff");rect(17,133,10,2,"#fff");
+
+  /* christmas tree */
+  const TX=154;
+  [[148,168,8],[162,190,12],[182,214,17]].forEach(([y0,y1,hw])=>{
+    for(let y=y0;y<=y1;y++){
+      const half=Math.round(hw*(y-y0)/(y1-y0)+2);
+      rect(TX-half,y,half*2+1,1,(y-y0)%4<2?"#2f8f3a":"#277a32");
+      rect(TX-half,y,1,1,"#1c5a26");rect(TX+half,y,1,1,"#1c5a26");
+    }
+    for(let dx=-hw;dx<=hw;dx++)rect(TX+dx,Math.round(y0+(y1-y0)*.55+Math.sin(dx*.55)*1.6),1,1,"#ffe27a");
+  });
+  rect(TX-2,214,5,7,"#5a3a22");
+  const orn=["#e0332e","#2f8ae0","#ffc12a","#e0332e","#2f8ae0","#ff9bd0"];
+  for(let i=0;i<26;i++){
+    const y=154+Math.floor(rnd()*58),half=3+(y-150)*.26;
+    const x=Math.round(TX+(rnd()*2-1)*half*.85);
+    rect(x,y,3,3,orn[i%orn.length]);rect(x,y,1,1,"#ffffff");
+  }
+  rect(TX-1,139,3,10,"#ffd23f");rect(TX-5,143,11,3,"#ffd23f");rect(TX-3,141,7,7,"#ffe27a");rect(TX-1,143,3,3,"#fff6b0");
+  /* gifts */
+  rect(137,221,10,9,"#c42a2a");rect(141,221,2,9,"#ffd23f");rect(137,224,10,2,"#ffd23f");
+  rect(147,218,11,12,"#2a8a3a");rect(152,218,2,12,"#ffd23f");rect(147,222,11,2,"#ffd23f");
+  rect(159,221,11,9,"#d0382a");rect(164,221,2,9,"#ffe27a");rect(159,224,11,2,"#ffe27a");
+
+  /* pole */
+  rect(111,0,10,210,"#7f6f60");rect(111,0,3,210,"#a08f7c");rect(118,0,3,210,"#5a4c42");
+  [[22,14],[72,14],[100,14],[186,14]].forEach(([y,w])=>{rect(116-w/2,y,w,3,"#ffffff");rect(116-w/2,y+3,w,1,"#a9bbf0")});
+  rect(110,186,12,3,"#ffd34f");rect(109,184,3,3,"#ffd34f");rect(118,184,3,3,"#ffd34f");
+  for(let y=4;y<200;y+=9)rect(112+((y*7)%7),y,1,2,"#cfd8ff");
+
+  /* bench */
+  rect(89,209,46,3,"#ffffff");rect(90,212,44,5,"#8a5a30");rect(90,218,44,2,"#5a3a1c");
+  rect(88,222,48,3,"#ffffff");rect(89,225,46,5,"#8a5a30");rect(89,231,46,2,"#5a3a1c");
+  rect(92,233,3,12,"#5a3a1c");rect(128,233,3,12,"#5a3a1c");
+
+  /* wires */
+  function wire(x0,y0,x1,y1,sag,snow){
+    for(let x=Math.min(x0,x1);x<=Math.max(x0,x1);x++){
+      const t=(x-x0)/(x1-x0),y=Math.round(lerp(y0,y1,t)+sag*4*t*(1-t));
+      rect(x,y,1,1,"#12162c");rect(x,y+1,1,1,"#12162c");
+      if(snow)rect(x,y-1,1,1,x%7===3?"#a9bbf0":"#e6eeff");
+    }
+  }
+  wire(0,60,111,28,4,true);wire(0,68,111,42,3,true);wire(0,74,111,56,5,false);
+  wire(121,28,W,19,3,true);wire(121,48,W,60,3,true);wire(121,60,W,52,4,true);
+  wire(121,66,134,86,7,false);
+  /* hanging lantern */
+  ell(134,95,12,12,"rgba(255,200,80,.18)");
+  rect(131,87,8,3,"#f4f8ff");rect(132,90,6,9,"#f2b02a");rect(133,91,4,7,"#ffe27a");rect(131,99,8,2,"#3a2e2a");
+
+  /* snow drifts */
+  const drift=(f,body,hi,sh)=>{for(let x=0;x<W;x++){const top=Math.round(f(x));rect(x,top,1,H-top,body);rect(x,top,1,2,hi);if(((x>>2)+(top>>1))%3===0)rect(x,top+3,1,2,sh)}};
+  const dd=x=>Math.abs(x-90)/90;
+  drift(x=>300-78*Math.pow(dd(x),1.15)+Math.sin(x*.23)*3+Math.sin(x*.61)*1.4,"#e1eaff","#ffffff","#b6c7f1");
+  /* mailbox */
+  rect(7,236,3,14,"#4a3320");rect(15,236,3,14,"#4a3320");rect(3,226,17,10,"#6a4a28");rect(5,229,9,2,"#c88a3a");rect(2,222,19,5,"#ffffff");rect(2,221,19,1,"#e6eeff");
+  /* road lumps */
+  for(let i=0;i<14;i++){const x=40+rnd()*100,y=252+rnd()*38,r=2+rnd()*4;ell(x,y,r,Math.max(1,r*.5),"rgba(235,243,255,.85)")}
+  drift(x=>320-42*Math.pow(dd(x),1.5)+Math.sin(x*.31+1)*2.6+Math.sin(x*.8)*1.2,"#f4f8ff","#ffffff","#c3d2f6");
+  /* snow caps on right edge shrubs */
+  for(let i=0;i<10;i++){const x=rnd()*W,y=292+rnd()*24;ell(x,y,3+rnd()*5,2,"#ffffff")}
+}
+buildScene();
+
+/* ---------- sprites ---------- */
+function sprite(map,pal,x,y,c){
+  c=c||ctx;x=Math.round(x);y=Math.round(y);
+  for(let j=0;j<map.length;j++){const row=map[j];for(let i=0;i<row.length;i++){const col=pal[row[i]];if(col){c.fillStyle=col;c.fillRect(x+i,y+j,1,1)}}}
+}
+const DEER=[
+"..a..a........a..a..",
+"..aa.a........a.aa..",
+"...aaa........aaa...",
+"....aa........aa....",
+"..bb..bbbbbbbb..bb..",
+"...bbbbbbbbbbbbbb...",
+"....bwwbbbbbbwwb....",
+"....bwpbbbbbbpwb....",
+"....bbbbbbbbbbbb....",
+".....bllllllllb.....",
+".....bllnnnnllb.....",
+".....blwwwwwwlb.....",
+"......bbbbbbbb......",
+"....rgrgrgrgrgrg....",
+"....bbbbbbbbbbbb....",
+"...bbbbbbbbbbbbbb...",
+"...bbbbbbbbbbbbbb...",
+"....bbbbbbbbbbbb....",
+"....bb........bb....",
+"....kk........kk...."];
+const DEER_PAL={a:"#6a3b1c",b:"#b8651e",l:"#e0954a",w:"#ffffff",p:"#1a0f0a",n:"#3a1c0e",r:"#d8282a",g:"#2f9a45",k:"#4a2810"};
+const MAND=[
+"...ggg...",
+"..ggggg..",
+".ooooooo.",
+"oOOoooood",
+"oOooooood",
+"ooooooood",
+".dooooodd",
+"..dddddd."];
+const MAND_PAL={o:"#ff8a1a",O:"#ffc34d",d:"#d4560a",g:"#3fa34d"};
+const GOLD_PAL={o:"#ffd23f",O:"#fff6b0",d:"#c98a00",g:"#8fd14f"};
+
+/* 15 skins: palette overrides for the deer + an optional accessory drawn over it */
+const SKINS=[
+{name:"Классика",price:0,pal:{},acc:null},
+{name:"Санта",price:10,pal:{r:"#ffffff",g:"#d8282a"},acc:{x:6,y:0,map:["....ww..","...rrrr.","..rrrrrr","wwwwwwww"],pal:{r:"#d8282a",w:"#ffffff"}}},
+{name:"Эльф",price:20,pal:{r:"#d8282a",g:"#ffffff"},acc:{x:6,y:0,map:["....yy..","...gggg.","..gggggg","rrrrrrrr"],pal:{g:"#2f9a45",y:"#ffd23f",r:"#d8282a"}}},
+{name:"Снеговик",price:30,pal:{b:"#e8eefc",l:"#ffffff",n:"#ff8a1a",r:"#2f6fe0",g:"#ffffff",a:"#8a6a4a",k:"#7a8ab0"},acc:{x:6,y:0,map:[".kkkkkk.",".kkkkkk.",".rrrrrr.","kkkkkkkk"],pal:{k:"#1a1a24",r:"#d8282a"}}},
+{name:"Король",price:40,pal:{r:"#7a2ad0",g:"#ffd23f"},acc:{x:6,y:0,map:["y..yy..y","yyyyyyyy","yryyyyry","yyyyyyyy"],pal:{y:"#ffd23f",r:"#e0332e"}}},
+{name:"Ковбой",price:55,pal:{r:"#d8282a",g:"#ffffff"},acc:{x:4,y:0,map:["....bbbb....","....bbbb....","....kkkk....","bbbbbbbbbbbb"],pal:{b:"#7a4a22",k:"#3a2210"}}},
+{name:"Повар",price:70,pal:{r:"#4a6fe0",g:"#ffffff"},acc:{x:6,y:0,map:[".wwwwww.","wwwwwwww","wwwwwwww","cccccccc"],pal:{w:"#ffffff",c:"#c3cde8"}}},
+{name:"Волшебник",price:90,pal:{r:"#6a2ad0",g:"#4a8af0"},acc:{x:6,y:0,map:["...pp...","..pppp..",".ppyppp.","pppppppp"],pal:{p:"#6a2ad0",y:"#ffd23f"}}},
+{name:"Ниндзя",price:110,pal:{b:"#2c2c3e",l:"#4a4a62",a:"#1c1c28",r:"#d8282a",g:"#111118",k:"#0c0c12"},acc:{x:3,y:5,map:["rrrrrrrrrrrrrrrr","..............rr"],pal:{r:"#d8282a"}}},
+{name:"Крутой",price:135,pal:{r:"#ff3ea5",g:"#2fe0e0"},acc:{x:5,y:6,map:["kkkkkkkkkk","kk......kk"],pal:{k:"#101018"}}},
+{name:"Пират",price:160,pal:{r:"#d8282a",g:"#111118"},acc:{x:4,y:1,map:["....kkkk....","..kkkwwkkk..","kkkkkkkkkkkk"],pal:{k:"#14141c",w:"#ffffff"}}},
+{name:"Золотой",price:190,pal:{b:"#e0a82a",l:"#ffe27a",a:"#a8741a",r:"#d8282a",g:"#fff6b0",k:"#8a5a10"},acc:{x:6,y:0,map:[".yyyyyy.","y......y"],pal:{y:"#fff6b0"}}},
+{name:"Единорог",price:230,pal:{b:"#f08ac0",l:"#ffc4e2",a:"#c04a90",r:"#4ad0f0",g:"#ffe27a",k:"#a03a78"},acc:{x:9,y:0,map:["yw","wy","yw","wy"],pal:{y:"#ffd23f",w:"#ffffff"}}},
+{name:"Космонавт",price:280,pal:{b:"#d6dcee",l:"#ffffff",a:"#8a94b4",r:"#ff8a1a",g:"#ffffff",k:"#7a84a8"},acc:{x:5,y:0,map:["....r.....","....w.....","..........","..........","..........","..........","vvvvvvvvvv","vsvvvvvvsv"],pal:{r:"#e0332e",w:"#ffffff",v:"#2f6fe0",s:"#9fc4ff"}}},
+{name:"Ледяной",price:350,pal:{b:"#8fd0ff",l:"#e0f4ff",a:"#4aa8e8",r:"#ffffff",g:"#4ad0f0",k:"#2f7ac0"},acc:{x:6,y:0,map:["i..ii..i","iiiiiiii","iwiiiiwi","iiiiiiii"],pal:{i:"#bfe8ff",w:"#ffffff"}}}
+];
+SKINS.forEach(s=>{s.full=Object.assign({},DEER_PAL,s.pal)});
+function drawDeer(c,s,x,y){
+  sprite(DEER,s.full,x,y,c);
+  if(s.acc)sprite(s.acc.map,s.acc.pal,x+s.acc.x,y+s.acc.y,c);
+}
+
+/* ---------- state ---------- */
+const DY=298;            /* top of deer sprite */
+let state="ready",score=0,best=0,lives=5;
+let wallet=0,total=0,lastScore=0,owned=[0],skinId=0;
+let deerX=90,hop=0,tx=90,usePointer=false,pointerDown=false;
+let items=[],parts=[],floats=[],spawnT=.6,newRecord=false;
+const held={l:false,r:false};
+try{
+  best=parseInt(localStorage.getItem("mandarin-best")||"0",10)||0;
+  const sv=JSON.parse(localStorage.getItem("mandarin-save")||"null");
+  if(sv){
+    best=Math.max(best,sv.best|0);wallet=sv.wallet|0;total=sv.total|0;lastScore=sv.lastScore|0;
+    if(Array.isArray(sv.owned))owned=sv.owned.filter(i=>Number.isInteger(i)&&i>=0&&i<SKINS.length);
+    if(!owned.includes(0))owned.unshift(0);
+    skinId=owned.includes(sv.skinId)?sv.skinId:0;
+  }
+}catch(e){}
+function save(){try{localStorage.setItem("mandarin-save",JSON.stringify({best,wallet,total,lastScore,owned,skinId}));localStorage.setItem("mandarin-best",String(best))}catch(e){}}
+
+const el=id=>document.getElementById(id);
+const scE=el("sc"),hiE=el("hi"),lvE=el("lv"),wlE=el("wl"),panel=el("panel"),pt=el("pt"),pp=el("pp"),go=el("go");
+const icPause=el("ic-pause"),icPlay=el("ic-play"),snd=el("snd"),waves=el("waves");
+function hud(){scE.textContent=score;hiE.textContent=best;wlE.textContent=wallet;lvE.textContent="Жизни: "+lives}
+hud();
+
+/* snow flakes */
+const flakes=[];for(let i=0;i<70;i++)flakes.push({x:Math.random()*W,y:Math.random()*H,v:10+Math.random()*26,s:Math.random()<.35?2:1,p:Math.random()*6});
+
+/* ---------- audio ---------- */
+let ac=null,mute=false;
+function audioInit(){
+  if(!ac){try{ac=new(window.AudioContext||window.webkitAudioContext)()}catch(e){}}
+  if(ac&&ac.state==="suspended")ac.resume().catch(()=>{});
+}
+function tone(f,d,type,v,f2){
+  if(!ac||mute)return;
+  const t=ac.currentTime,o=ac.createOscillator(),gn=ac.createGain();
+  o.type=type||"square";o.frequency.setValueAtTime(f,t);if(f2)o.frequency.linearRampToValueAtTime(f2,t+d);
+  gn.gain.setValueAtTime(v||.04,t);gn.gain.exponentialRampToValueAtTime(.0001,t+d);
+  o.connect(gn);gn.connect(ac.destination);o.start(t);o.stop(t+d);
+}
+snd.addEventListener("click",()=>{audioInit();mute=!mute;snd.classList.toggle("off",mute);waves.style.display=mute?"none":""});
+
+/* ---------- flow ---------- */
+function showPanel(title,text,btn){pt.textContent=title;pp.textContent=text;go.textContent=btn;panel.hidden=false;go.focus({preventScroll:true})}
+function start(){
+  audioInit();
+  score=0;lives=5;items=[];parts=[];floats=[];spawnT=.5;newRecord=false;deerX=tx=90;
+  state="play";panel.hidden=true;setPauseIcon();hud();
+}
+function setPauseIcon(){icPause.hidden=state==="pause";icPlay.hidden=state!=="pause"}
+function togglePause(){
+  if(state==="play"){state="pause";showPanel("Пауза","Отдохни и возвращайся","Дальше")}
+  else if(state==="pause"){state="play";panel.hidden=true}
+  setPauseIcon();
+}
+function gameOver(){
+  state="over";
+  lastScore=score;
+  if(score>best){best=score;newRecord=true}
+  save();
+  hud();tone(300,.55,"triangle",.06,70);
+  showPanel("Игра окончена",(newRecord?"Новый рекорд! ":"")+"Счёт: "+score+". Рекорд: "+best,"Ещё раз");
+  setPauseIcon();
+}
+go.addEventListener("click",()=>{if(state==="pause")togglePause();else start()});
+el("pz").addEventListener("click",()=>{audioInit();if(state==="play"||state==="pause")togglePause()});
+document.addEventListener("visibilitychange",()=>{if(document.hidden&&state==="play")togglePause()});
+
+/* ---------- input ---------- */
+function hold(btn,key){
+  btn.addEventListener("pointerdown",e=>{e.preventDefault();held[key]=true;audioInit();try{btn.setPointerCapture(e.pointerId)}catch(_){}});
+  ["pointerup","pointercancel","lostpointercapture"].forEach(ev=>btn.addEventListener(ev,()=>{held[key]=false}));
+}
+hold(el("bl"),"l");hold(el("br"),"r");
+function ptrX(e){const r=cv.getBoundingClientRect();return(e.clientX-r.left)/r.width*W}
+stage.addEventListener("pointerdown",e=>{
+  if(e.target.closest("button,a,.menu"))return;
+  audioInit();pointerDown=true;if(state==="play"){usePointer=true;tx=ptrX(e)}
+});
+stage.addEventListener("pointermove",e=>{
+  if(state!=="play")return;
+  if(pointerDown||e.pointerType==="mouse"){usePointer=true;tx=ptrX(e)}
+});
+["pointerup","pointercancel"].forEach(ev=>addEventListener(ev,()=>{pointerDown=false}));
+stage.addEventListener("contextmenu",e=>e.preventDefault());
+addEventListener("keydown",e=>{
+  const k=e.key;
+  if(!el("menu").hidden){if(k==="Escape")closeMenu();return}
+  if(k==="ArrowLeft"||k==="a"||k==="A"||k==="ф"||k==="Ф"){held.l=true;e.preventDefault()}
+  else if(k==="ArrowRight"||k==="d"||k==="D"||k==="в"||k==="В"){held.r=true;e.preventDefault()}
+  else if(k==="p"||k==="P"||k==="з"||k==="З"||k==="Escape"){if(state==="play"||state==="pause")togglePause()}
+  else if((k==="Enter"||k===" ")&&(state==="ready"||state==="over")){e.preventDefault();start()}
+  else if(k===" "&&state==="pause"){e.preventDefault();togglePause()}
+});
+addEventListener("keyup",e=>{
+  const k=e.key;
+  if(k==="ArrowLeft"||k==="a"||k==="A"||k==="ф"||k==="Ф")held.l=false;
+  if(k==="ArrowRight"||k==="d"||k==="D"||k==="в"||k==="В")held.r=false;
+});
+addEventListener("blur",()=>{held.l=held.r=false});
+
+/* ---------- update ---------- */
+function burst(x,y,cols,n,sp){for(let i=0;i<n;i++){const a=Math.random()*Math.PI*2,s=sp*(.4+Math.random()*.8);parts.push({x,y,vx:Math.cos(a)*s,vy:Math.sin(a)*s-sp*.5,life:.45+Math.random()*.3,c:cols[i%cols.length]})}}
+function update(dt,t){
+  flakes.forEach(f=>{f.y+=f.v*dt;f.x+=Math.sin(t*1.3+f.p)*6*dt;if(f.y>H){f.y=-2;f.x=Math.random()*W}if(f.x<-2)f.x=W;if(f.x>W+2)f.x=-2});
+  parts.forEach(p=>{p.life-=dt;p.x+=p.vx*dt;p.y+=p.vy*dt;p.vy+=160*dt});parts=parts.filter(p=>p.life>0);
+  floats.forEach(f=>{f.life-=dt;f.y-=22*dt});floats=floats.filter(f=>f.life>0);
+  hop=Math.max(0,hop-26*dt);
+  if(state!=="play")return;
+
+  const dir=(held.r?1:0)-(held.l?1:0);
+  if(dir!==0){usePointer=false;deerX+=dir*175*dt}
+  else if(usePointer){const d=tx-deerX,m=420*dt;deerX+=Math.max(-m,Math.min(m,d))}
+  deerX=Math.max(11,Math.min(W-11,deerX));
+
+  spawnT-=dt;
+  if(spawnT<=0){
+    const gold=Math.random()<.08;
+    items.push({x:8+Math.random()*(W-16),y:-6,vy:Math.min(135,50+score*1.5)*(.85+Math.random()*.35),gold});
+    spawnT=Math.max(.42,1.15-score*.012)*(.8+Math.random()*.45);
+  }
+  for(const it of items){
+    it.y+=it.vy*dt;
+    if(!it.done&&it.y+4>=DY+2&&it.y<=DY+10&&Math.abs(it.x-deerX)<11){
+      it.done=true;
+      const pts=it.gold?5:1;score+=pts;wallet+=pts;total+=pts;hop=4;hud();
+      if(score>best){best=score;newRecord=true;hud()}
+      save();
+      burst(it.x,DY+2,it.gold?["#ffd23f","#fff6b0"]:["#ff8a1a","#ffc34d"],it.gold?12:7,40);
+      floats.push({x:it.x,y:DY-4,life:.7,text:"+"+pts,c:it.gold?"#ffd23f":"#ffffff"});
+      if(it.gold){tone(660,.09,"square",.04,990);setTimeout(()=>tone(990,.12,"square",.04,1320),90)}else tone(640,.08,"square",.035,900);
+    }else if(!it.done&&it.y>H-1){
+      it.done=true;burst(it.x,H-4,["#ffffff","#ff8a1a","#e1eaff"],8,34);
+      if(!it.gold){
+        lives--;hud();lvE.classList.add("hit");setTimeout(()=>lvE.classList.remove("hit"),320);
+        tone(210,.2,"sawtooth",.045,110);
+        if(lives<=0){gameOver();break}
+      }
+    }
+  }
+  items=items.filter(i=>!i.done);
+}
+
+/* ---------- draw ---------- */
+function draw(t){
+  ctx.drawImage(bg,0,0);
+  ctx.fillStyle="#ffffff";
+  flakes.forEach(f=>ctx.fillRect(Math.round(f.x),Math.round(f.y),f.s,f.s));
+  for(const it of items){
+    sprite(MAND,it.gold?GOLD_PAL:MAND_PAL,it.x-4.5,it.y-4);
+    if(it.gold&&Math.floor(t*8)%2===0){ctx.fillStyle="#fff";ctx.fillRect(Math.round(it.x)-7,Math.round(it.y)-2,1,1);ctx.fillRect(Math.round(it.x)+6,Math.round(it.y)+3,1,1)}
+  }
+  drawDeer(ctx,SKINS[skinId],deerX-10,DY-hop);
+  parts.forEach(p=>{ctx.fillStyle=p.c;ctx.fillRect(Math.round(p.x),Math.round(p.y),2,2)});
+  if(floats.length){
+    ctx.font='7px "Press Start 2P",monospace';ctx.textAlign="center";ctx.textBaseline="alphabetic";
+    floats.forEach(f=>{ctx.fillStyle="#0a1038";ctx.fillText(f.text,Math.round(f.x)+1,Math.round(f.y)+1);ctx.fillStyle=f.c;ctx.fillText(f.text,Math.round(f.x),Math.round(f.y))});
+  }
+}
+
+let last=0;
+function frame(ts){
+  const dt=Math.min(.05,(ts-last)/1000||0);last=ts;
+  update(dt,ts/1000);draw(ts/1000);
+  requestAnimationFrame(frame);
+}
+requestAnimationFrame(frame);
+/* ---------- shop + share ---------- */
+const menu=el("menu"),grid=el("grid"),shopMsg=el("shop-msg"),shareMsg=el("share-msg"),shareTa=el("sharetext");
+const tabShop=el("tab-shop"),tabShare=el("tab-share"),viewShop=el("view-shop"),viewShare=el("view-share");
+
+function drawPreview(cnv,s){
+  const c=cnv.getContext("2d");c.fillStyle="#22307a";c.fillRect(0,0,20,20);
+  c.fillStyle="#e1eaff";c.fillRect(0,17,20,3);
+  drawDeer(c,s,0,0);
+}
+function renderShop(){
+  el("wl2").textContent=wallet;
+  grid.textContent="";
+  SKINS.forEach((s,i)=>{
+    const card=document.createElement("div");card.className="skin"+(skinId===i?" cur":"");
+    const cnv=document.createElement("canvas");cnv.width=20;cnv.height=20;drawPreview(cnv,s);
+    const nm=document.createElement("div");nm.className="nm";nm.textContent=s.name;
+    const b=document.createElement("button");b.className="pxbtn buy";b.id="skin-"+i;
+    if(skinId===i){b.textContent="Надето";b.classList.add("on");b.disabled=true}
+    else if(owned.includes(i)){b.textContent="Надеть"}
+    else{b.textContent=s.price;b.classList.add("price");if(wallet<s.price)b.classList.add("dis")}
+    b.addEventListener("click",()=>pickSkin(i));
+    card.append(cnv,nm,b);grid.appendChild(card);
+  });
+}
+function pickSkin(i){
+  const s=SKINS[i];audioInit();
+  if(owned.includes(i)){skinId=i;shopMsg.textContent="Надет скин: "+s.name}
+  else if(wallet>=s.price){wallet-=s.price;owned.push(i);skinId=i;shopMsg.textContent="Куплено: "+s.name+"!";tone(520,.1,"square",.04,780);setTimeout(()=>tone(780,.14,"square",.04,1040),100)}
+  else{shopMsg.textContent="Не хватает мандаринов: ещё "+(s.price-wallet);tone(200,.15,"sawtooth",.04,140)}
+  save();hud();renderShop();
+}
+function shareString(){
+  const s=SKINS[skinId];
+  return "🍊 Ловец Мандаринов\nМой рекорд: "+best+"\nПоследний счёт: "+lastScore+"\nСобрано мандаринов: "+total+"\nСкин: "+s.name+" ("+owned.length+" из "+SKINS.length+")";
+}
+function showTab(t){
+  const shopOn=t==="shop";
+  tabShop.classList.toggle("on",shopOn);tabShare.classList.toggle("on",!shopOn);
+  viewShop.hidden=!shopOn;viewShare.hidden=shopOn;
+  if(shopOn)renderShop();else{shareTa.value=shareString();shareMsg.textContent=""}
+}
+function openMenu(t){
+  held.l=held.r=false;
+  if(state==="play")togglePause();
+  menu.hidden=false;showTab(t);
+  (t==="shop"?tabShop:tabShare).focus({preventScroll:true});
+}
+function closeMenu(){menu.hidden=true;go.focus({preventScroll:true})}
+tabShop.addEventListener("click",()=>showTab("shop"));
+tabShare.addEventListener("click",()=>showTab("share"));
+el("menu-x").addEventListener("click",closeMenu);
+el("shop").addEventListener("click",()=>{audioInit();openMenu("shop")});
+el("o-shop").addEventListener("click",()=>openMenu("shop"));
+el("o-share").addEventListener("click",()=>openMenu("share"));
+el("copy").addEventListener("click",async()=>{
+  shareTa.value=shareString();
+  try{await navigator.clipboard.writeText(shareTa.value);shareMsg.textContent="Скопировано. Теперь открой пост и вставь текст в комментарии."}
+  catch(e){
+    shareTa.focus();shareTa.select();try{shareTa.setSelectionRange(0,shareTa.value.length)}catch(_){}
+    let ok=false;try{ok=document.execCommand("copy")}catch(_){}
+    shareMsg.textContent=ok?"Скопировано. Теперь открой пост и вставь текст в комментарии.":"Текст выделен. Скопируй его вручную."
+  }
+});
+
+showPanel("Ловец Мандаринов","Лови мандарины оленем. Двигай пальцем или стрелками ← →","Играть");
+})();
+</script>
+
+</body></html>
